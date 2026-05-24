@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#06120a" />
+  <title>Mossfall</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-deep:   #06120a;
+      --bg-mid:    #0f2418;
+      --bg-soft:   #1a4029;
+      --accent:    #e8c97a;
+      --firefly:   #d8e87a;
+      --text:      #ecf2e8;
+      --text-dim:  #9ab59d;
+      --safe-top:  env(safe-area-inset-top, 0px);
+      --safe-bot:  env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    body {
+      min-height: 100vh;
+      padding: calc(20px + var(--safe-top)) 22px calc(40px + var(--safe-bot));
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%,   var(--bg-soft) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 100%, #1f5235      0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 10% 100%, #0d2818      0%, transparent 60%),
+        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+      background-attachment: fixed;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1.4px 1.4px at 18% 22%, var(--firefly) 50%, transparent 51%),
+        radial-gradient(1px   1px   at 82% 18%, rgba(216,232,122,.7) 50%, transparent 51%),
+        radial-gradient(1.2px 1.2px at 62% 70%, var(--firefly) 50%, transparent 51%),
+        radial-gradient(1px   1px   at 28% 82%, rgba(216,232,122,.5) 50%, transparent 51%),
+        radial-gradient(1.6px 1.6px at 90% 52%, var(--accent) 50%, transparent 51%),
+        radial-gradient(1px   1px   at 8%  60%, rgba(232,201,122,.6) 50%, transparent 51%),
+        radial-gradient(1.4px 1.4px at 48% 14%, var(--firefly) 50%, transparent 51%),
+        radial-gradient(1px   1px   at 74% 88%, rgba(216,232,122,.5) 50%, transparent 51%);
+      background-size: 640px 640px;
+      opacity: .7;
+      pointer-events: none;
+      animation: firefly-glow 6s ease-in-out infinite;
+      z-index: 0;
+    }
+    @keyframes firefly-glow {
+      0%, 100% { opacity: .45; }
+      50%      { opacity: .85; }
+    }
+
+    .back {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 8px 14px 8px 10px;
+      border: 1px solid rgba(154, 181, 157, .25);
+      border-radius: 999px;
+      backdrop-filter: blur(4px);
+      transition: color .2s, border-color .2s, background .2s;
+    }
+    .back:hover {
+      color: var(--text);
+      border-color: rgba(232, 201, 122, .4);
+      background: rgba(26, 64, 41, .25);
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+      margin: 0 auto;
+      padding-top: 32px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: .42em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(36px, 10vw, 56px);
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      text-align: center;
+      background: linear-gradient(180deg, #fff 0%, #c5e0c8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 8px;
+    }
+    .title em {
+      font-style: italic;
+      color: var(--accent);
+      -webkit-text-fill-color: var(--accent);
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--text-dim);
+      max-width: 420px;
+      margin: 0 auto 48px;
+      line-height: 1.5;
+    }
+
+    /* === Your activity goes inside .content. Replace freely. === */
+    .content {
+      min-height: 50vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    /* Demo orb — a placeholder visual you can delete once you build the real thing. */
+    .orb {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 35% 30%,
+        rgba(232, 201, 122, .9) 0%,
+        rgba(216, 232, 122, .6) 30%,
+        rgba(26, 64, 41, .8)   70%,
+        rgba(15, 36, 24, 1)    100%
+      );
+      box-shadow:
+        0 0 60px rgba(232, 201, 122, .35),
+        0 0 120px rgba(216, 232, 122, .2);
+      animation: breathe 6s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(.9);  opacity: .85; }
+      50%      { transform: scale(1.1); opacity: 1;   }
+    }
+    .hint {
+      font-family: 'Fraunces', Georgia, serif;
+      font-style: italic;
+      color: var(--text-dim);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::before, .orb { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="./">&larr; back to the grove</a>
+
+  <div class="page">
+    <p class="eyebrow">a quiet place</p>
+    <h1 class="title">Moss<em>fall</em></h1>
+    <p class="subtitle">
+      A short description of what this page is. Replace with your own writing,
+      activity, or instructions.
+    </p>
+
+    <div class="content">
+      <div class="orb"></div>
+      <p class="hint">breathe in as it grows, out as it settles</p>
+    </div>
+  </div>
+</body>
+</html>
