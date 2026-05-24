@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#06120a" />
+  <title>Mossfall &middot; meditation timer</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-deep:   #06120a;
+      --bg-mid:    #0f2418;
+      --bg-soft:   #1a4029;
+      --accent:    #e8c97a;
+      --firefly:   #d8e87a;
+      --text:      #ecf2e8;
+      --text-dim:  #9ab59d;
+      --safe-top:  env(safe-area-inset-top, 0px);
+      --safe-bot:  env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    body {
+      min-height: 100vh;
+      padding: calc(20px + var(--safe-top)) 22px calc(40px + var(--safe-bot));
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%,   var(--bg-soft) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 100%, #1f5235      0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 10% 100%, #0d2818      0%, transparent 60%),
+        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+      background-attachment: fixed;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1.4px 1.4px at 18% 22%, var(--firefly) 50%, transparent 51%),
+        radial-gradient(1px   1px   at 82% 18%, rgba(216,232,122,.7) 50%, transparent 51%),
+        radial-gradient(1.2px 1.2px at 62% 70%, var(--firefly) 50%, transparent 51%),
+        radial-gradient(1px   1px   at 28% 82%, rgba(216,232,122,.5) 50%, transparent 51%),
+        radial-gradient(1.6px 1.6px at 90% 52%, var(--accent) 50%, transparent 51%),
+        radial-gradient(1px   1px   at 8%  60%, rgba(232,201,122,.6) 50%, transparent 51%),
+        radial-gradient(1.4px 1.4px at 48% 14%, var(--firefly) 50%, transparent 51%),
+        radial-gradient(1px   1px   at 74% 88%, rgba(216,232,122,.5) 50%, transparent 51%);
+      background-size: 640px 640px;
+      opacity: .7;
+      pointer-events: none;
+      animation: firefly-glow 6s ease-in-out infinite;
+      z-index: 0;
+    }
+    @keyframes firefly-glow {
+      0%, 100% { opacity: .45; }
+      50%      { opacity: .85; }
+    }
+
+    .back {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 8px 14px 8px 10px;
+      border: 1px solid rgba(154, 181, 157, .25);
+      border-radius: 999px;
+      backdrop-filter: blur(4px);
+      transition: color .2s, border-color .2s, background .2s;
+    }
+    .back:hover {
+      color: var(--text);
+      border-color: rgba(232, 201, 122, .4);
+      background: rgba(26, 64, 41, .25);
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+      margin: 0 auto;
+      padding-top: 32px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: .42em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(36px, 10vw, 56px);
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      text-align: center;
+      background: linear-gradient(180deg, #fff 0%, #c5e0c8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 8px;
+    }
+    .title em {
+      font-style: italic;
+      color: var(--accent);
+      -webkit-text-fill-color: var(--accent);
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--text-dim);
+      max-width: 420px;
+      margin: 0 auto 48px;
+      line-height: 1.5;
+    }
+
+    /* === Timer === */
+    .timer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .orb-frame {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .ring-track {
+      fill: none;
+      stroke: rgba(154, 181, 157, .18);
+      stroke-width: 2;
+    }
+    .ring-fill {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      /* circumference = 2 * PI * r (r=115) = 722.57 */
+      stroke-dasharray: 722.57;
+      stroke-dashoffset: 722.57;
+      transition: stroke-dashoffset .3s linear;
+      filter: drop-shadow(0 0 6px rgba(232, 201, 122, .55));
+    }
+
+    .orb {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 35% 30%,
+        rgba(232, 201, 122, .9) 0%,
+        rgba(216, 232, 122, .55) 30%,
+        rgba(26, 64, 41, .8)   70%,
+        rgba(15, 36, 24, 1)    100%
+      );
+      box-shadow:
+        0 0 60px rgba(232, 201, 122, .3),
+        0 0 120px rgba(216, 232, 122, .18);
+      transition: transform .8s ease, box-shadow .8s ease;
+    }
+    .orb.running {
+      animation: breathe 8s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(.88); }
+      50%      { transform: scale(1.08); }
+    }
+    .orb.done {
+      box-shadow:
+        0 0 80px rgba(232, 201, 122, .55),
+        0 0 160px rgba(216, 232, 122, .3);
+    }
+
+    .time {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 300;
+      font-size: 64px;
+      letter-spacing: -.02em;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+
+    .presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .chip {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(15, 36, 24, .5);
+      border: 1px solid rgba(154, 181, 157, .25);
+      color: var(--text-dim);
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      transition: color .2s, border-color .2s, background .2s, transform .15s;
+    }
+    .chip:hover {
+      color: var(--text);
+      border-color: rgba(232, 201, 122, .4);
+    }
+    .chip.active {
+      background: rgba(232, 201, 122, .15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .chip:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+    .presets-hint {
+      font-size: 11px;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: -16px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .btn {
+      font: inherit;
+      font-size: 15px;
+      padding: 13px 32px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .2s ease, background .2s, color .2s, border-color .2s;
+      border: 1px solid transparent;
+      letter-spacing: .01em;
+    }
+    .btn.primary {
+      background: var(--accent);
+      color: #1a1408;
+      font-weight: 500;
+      box-shadow: 0 4px 14px rgba(232, 201, 122, .25);
+    }
+    .btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 22px rgba(232, 201, 122, .4);
+    }
+    .btn.primary:active { transform: translateY(0); }
+    .btn.ghost {
+      background: transparent;
+      color: var(--text-dim);
+      border-color: rgba(154, 181, 157, .3);
+    }
+    .btn.ghost:hover {
+      color: var(--text);
+      border-color: var(--text-dim);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::before, .orb { animation: none !important; }
+      .orb.running { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="./">&larr; back to the grove</a>
+
+  <div class="page">
+    <p class="eyebrow">a quiet place</p>
+    <h1 class="title">Moss<em>fall</em></h1>
+    <p class="subtitle">
+      Choose a length, settle in, and let the orb keep time.
+    </p>
+
+    <div class="timer">
+      <div class="orb-frame">
+        <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
+          <circle class="ring-track" cx="120" cy="120" r="115"></circle>
+          <circle class="ring-fill"  cx="120" cy="120" r="115"></circle>
+        </svg>
+        <div class="orb" id="orb"></div>
+      </div>
+
+      <div class="time" id="time" aria-live="polite">5:00</div>
+
+      <div class="presets" role="group" aria-label="Duration in minutes">
+        <button class="chip" data-mins="1">1</button>
+        <button class="chip" data-mins="3">3</button>
+        <button class="chip active" data-mins="5">5</button>
+        <button class="chip" data-mins="10">10</button>
+        <button class="chip" data-mins="15">15</button>
+        <button class="chip" data-mins="20">20</button>
+      </div>
+      <p class="presets-hint">minutes</p>
+
+      <div class="controls">
+        <button class="btn primary" id="startBtn">Begin</button>
+        <button class="btn ghost"   id="resetBtn">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       MEDITATION TIMER
+       ------------------------------------------------------------
+       State machine:
+         idle      → fresh, full duration on the clock
+         running   → counting down, orb breathing, ring filling
+         paused    → stopped mid-session, ring frozen
+         complete  → reached zero, chime played, orb glowing
+       The Reset button returns to idle from any state.
+       ============================================================ */
+
+    const CIRCUMFERENCE = 2 * Math.PI * 115; // matches r=115 on the SVG circle
+
+    const els = {
+      time:   document.getElementById("time"),
+      orb:    document.getElementById("orb"),
+      start:  document.getElementById("startBtn"),
+      reset:  document.getElementById("resetBtn"),
+      ring:   document.querySelector(".ring-fill"),
+      chips:  document.querySelectorAll(".chip"),
+    };
+
+    let totalMs     = 5 * 60 * 1000;
+    let remainingMs = totalMs;
+    let running     = false;
+    let lastTick    = 0;
+    let rafId       = null;
+    let wakeLock    = null;
+    let audioCtx    = null;
+
+    function format(ms) {
+      const totalSec = Math.max(0, Math.ceil(ms / 1000));
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      return m + ":" + String(s).padStart(2, "0");
+    }
+
+    function render() {
+      els.time.textContent = format(remainingMs);
+
+      const progress = totalMs > 0 ? 1 - (remainingMs / totalMs) : 0;
+      els.ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+
+      els.orb.classList.toggle("running", running);
+      els.orb.classList.toggle("done", remainingMs <= 0 && !running);
+
+      els.start.textContent =
+        remainingMs <= 0      ? "Begin again" :
+        running               ? "Pause"       :
+        remainingMs < totalMs ? "Resume"      : "Begin";
+
+      els.chips.forEach(c => { c.disabled = running; });
+    }
+
+    function tick(now) {
+      if (!running) return;
+      const delta = now - lastTick;
+      lastTick = now;
+      remainingMs = Math.max(0, remainingMs - delta);
+      render();
+      if (remainingMs <= 0) {
+        finish();
+        return;
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function start() {
+      if (remainingMs <= 0) remainingMs = totalMs; // "Begin again"
+      running = true;
+      lastTick = performance.now();
+      requestWakeLock();
+      rafId = requestAnimationFrame(tick);
+      render();
+    }
+
+    function pause() {
+      if (!running) return;
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      releaseWakeLock();
+      render();
+    }
+
+    function reset() {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      releaseWakeLock();
+      remainingMs = totalMs;
+      render();
+    }
+
+    function finish() {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      releaseWakeLock();
+      remainingMs = 0;
+      render();
+      playChime();
+    }
+
+    function setDuration(mins) {
+      reset();
+      totalMs = mins * 60 * 1000;
+      remainingMs = totalMs;
+      els.chips.forEach(c => {
+        c.classList.toggle("active", Number(c.dataset.mins) === mins);
+      });
+      render();
+    }
+
+    /* ---------- Singing-bowl chime via Web Audio (no audio file) ---------- */
+    function playChime() {
+      try {
+        if (!audioCtx) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new Ctx();
+        }
+        const now = audioCtx.currentTime;
+        // Three soft sine tones with overlapping decay — bowl-like.
+        [528, 396, 528].forEach((freq, i) => {
+          const t0 = now + i * 0.5;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0, t0);
+          gain.gain.linearRampToValueAtTime(0.3, t0 + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, t0 + 3.5);
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(t0);
+          osc.stop(t0 + 3.5);
+        });
+      } catch (e) { /* audio unavailable — silent finish is fine */ }
+    }
+
+    /* ---------- Wake Lock so the screen doesn't dim mid-session ---------- */
+    async function requestWakeLock() {
+      if (!("wakeLock" in navigator)) return;
+      try { wakeLock = await navigator.wakeLock.request("screen"); }
+      catch (e) { /* user agent denied or page hidden */ }
+    }
+    function releaseWakeLock() {
+      if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && running) requestWakeLock();
+    });
+
+    /* ---------- Wiring ---------- */
+    els.start.addEventListener("click", () => {
+      if (running) pause(); else start();
+    });
+    els.reset.addEventListener("click", reset);
+    els.chips.forEach(c => {
+      c.addEventListener("click", () => setDuration(Number(c.dataset.mins)));
+    });
+
+    render();
+  </script>
+</body>
+</html>
